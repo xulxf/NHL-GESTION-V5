@@ -181,7 +181,7 @@ class TicketTools(commands.Cog):
 
     @app_commands.command(name="note", description="Ajouter une note interne (invisible pour le client)")
     @app_commands.guild_only()
-    async def note(self, interaction: discord.Interaction, texte: app_commands.Range[str, 1, 1000.0]):
+    async def note(self, interaction: discord.Interaction, texte: app_commands.Range[str, 1, 1000]):
         row = await self.staff_ticket(interaction)
         if row is None:
             return
