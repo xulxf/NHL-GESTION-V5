@@ -1,0 +1,159 @@
+{% extends "guild.html" %}
+{% block page %}
+<h1>🎬 Ressources</h1>
+<p class="sub">Envoie des vidéos, images ou fichiers directement sur le site (ou ajoute un lien), visibles uniquement par le rôle Discord de ton choix.</p>
+
+<div class="card">
+  <h2>🔑 Qui peut voir les ressources ?</h2>
+  <form method="post" action="{{ url_for('resources_role', guild_id=guild.id) }}" class="inline-form">
+    <input type="hidden" name="csrf" value="{{ csrf }}">
+    <select name="role">
+      <option value="">— Personne (gestionnaires uniquement) —</option>
+      {% for oid, oname in options["role"] %}
+      <option value="{{ oid }}" {% if current_role|string == oid|string %}selected{% endif %}>{{ oname }}</option>
+      {% endfor %}
+    </select>
+    <button class="btn primary" type="submit">💾 Enregistrer</button>
+  </form>
+  <p class="hint share">Lien à donner à tes membres : <code>{{ share_url }}</code><br>
+    Ils se connectent avec Discord : l'accès est vérifié à chaque visite grâce à leur rôle sur le serveur.</p>
+  <a class="btn ghost small" href="{{ url_for('member_resources', guild_id=guild.id) }}">👁️ Voir comme un membre</a>
+</div>
+
+<form id="res-form" method="post" action="{{ url_for('resources_add', guild_id=guild.id) }}" enctype="multipart/form-data" class="card">
+  <h2>➕ Ajouter une ressource</h2>
+  <input type="hidden" name="csrf" value="{{ csrf }}">
+  <div class="field">
+    <div class="field-head"><label for="r-title">Titre</label></div>
+    <input id="r-title" type="text" name="title" maxlength="100" required>
+  </div>
+  <div class="field">
+    <div class="field-head">
+      <label for="r-file">📁 Fichier à envoyer sur le site</label>
+      <span class="hint">Vidéo (mp4, webm, mov), audio, image, pdf, zip… — {{ max_upload_mb }} Mo maximum par fichier.</span>
+    </div>
+    <input id="r-file" type="file" name="file">
+  </div>
+  <div class="field">
+    <div class="field-head">
+      <label for="r-url">…ou un lien</label>
+      <span class="hint">Facultatif si tu envoies un fichier : YouTube, Vimeo, Drive, vidéo directe…</span>
+    </div>
+    <input id="r-url" type="text" name="url" maxlength="500" placeholder="https://youtu.be/…">
+  </div>
+  <div class="field">
+    <div class="field-head"><label for="r-cat">Catégorie</label><span class="hint">Facultatif : sert à regrouper les ressources (ex. Tutoriels, Packs).</span></div>
+    <input id="r-cat" type="text" name="category" maxlength="40" list="cats">
+    <datalist id="cats">{% for c in categories %}<option value="{{ c }}">{% endfor %}</datalist>
+  </div>
+  <div class="field">
+    <div class="field-head"><label for="r-desc">Description</label></div>
+    <textarea id="r-desc" name="description" rows="3" maxlength="500"></textarea>
+  </div>
+  <div class="field">
+    <div class="field-head">
+      <label for="r-role">Rôle requis pour cette ressource</label>
+      <span class="hint">Facultatif : par défaut, le rôle choisi ci-dessus. Utile pour des niveaux d'accès (ex. VIP).</span>
+    </div>
+    <select id="r-role" name="role">
+      <option value="">— Rôle global —</option>
+      {% for oid, oname in options["role"] %}<option value="{{ oid }}">{{ oname }}</option>{% endfor %}
+    </select>
+  </div>
+  <div class="actions"><button id="r-submit" class="btn primary" type="submit">➕ Ajouter</button></div>
+  <div id="upload-progress" class="progress upload-bar" hidden><div style="width: 0%"></div></div>
+  <p id="upload-status" class="upload-status" hidden></p>
+  <p class="hint share">Stockage utilisé par les fichiers : <b>{{ "%.0f"|format(used_mb) }} Mo</b> sur {{ storage_limit_mb }} Mo autorisés.
+    Les fichiers sont conservés dans ta base de données ; garde de la marge pour le reste du bot.</p>
+</form>
+
+<div class="card">
+  <h2>📚 Ressources ({{ items|length }})</h2>
+  {% if items %}
+  <div class="table-wrap">
+  <table>
+    <tr><th>Titre</th><th>Catégorie</th><th>Type</th><th>Source</th><th>Accès</th><th>Ajouté le</th><th></th></tr>
+    {% for it in items %}
+    <tr>
+      <td><a href="{{ it['url'] }}" target="_blank" rel="noopener noreferrer"><b>{{ it["title"] }}</b></a></td>
+      <td>{{ it["category"] }}</td>
+      <td>{% if it["kind"] in ("embed", "video") %}🎬 Vidéo{% elif it["kind"] == "image" %}🖼️ Image{% elif it["kind"] == "audio" %}🎵 Audio{% elif it["kind"] == "file" %}📎 Fichier{% else %}🔗 Lien{% endif %}</td>
+      <td>{% if it["hosted"] %}Sur le site · {{ "%.1f"|format(it["size"] / 1048576) }} Mo{% else %}Lien externe{% endif %}</td>
+      <td>{{ it["role"] }}</td>
+      <td>{{ it["created_at"]|datefmt }}</td>
+      <td class="right">
+        <form method="post" action="{{ url_for('resources_delete', guild_id=guild.id) }}" onsubmit="return confirm('Supprimer cette ressource ?');">
+          <input type="hidden" name="csrf" value="{{ csrf }}">
+          <input type="hidden" name="id" value="{{ it['id'] }}">
+          <button class="btn danger small" type="submit">Supprimer</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  </div>
+  {% else %}<p class="muted">Aucune ressource pour l'instant.</p>{% endif %}
+</div>
+
+<script>
+(function () {
+  var form = document.getElementById("res-form");
+  var fileInput = document.getElementById("r-file");
+  var titleInput = document.getElementById("r-title");
+  var submit = document.getElementById("r-submit");
+  var wrap = document.getElementById("upload-progress");
+  var bar = wrap.firstElementChild;
+  var status = document.getElementById("upload-status");
+  var maxBytes = {{ max_upload_mb }} * 1024 * 1024;
+
+  function show(message, isError) {
+    status.hidden = false;
+    status.textContent = message;
+    status.className = "upload-status " + (isError ? "error" : "ok");
+  }
+
+  fileInput.addEventListener("change", function () {
+    var file = fileInput.files[0];
+    if (file && !titleInput.value) { titleInput.value = file.name.replace(/\.[^.]+$/, ""); }
+  });
+
+  form.addEventListener("submit", function (event) {
+    var file = fileInput.files[0];
+    if (!file) { return; }                       // pas de fichier : envoi classique (lien)
+    event.preventDefault();
+    if (file.size > maxBytes) { show("❌ Fichier trop lourd : maximum {{ max_upload_mb }} Mo.", true); return; }
+
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", form.action);
+    xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+    submit.disabled = true;
+    wrap.hidden = false;
+    show("Envoi en cours… ne ferme pas cette page.", false);
+
+    xhr.upload.onprogress = function (e) {
+      if (e.lengthComputable) {
+        var percent = Math.round(100 * e.loaded / e.total);
+        bar.style.width = percent + "%";
+        show("Envoi en cours… " + percent + " %", false);
+      }
+    };
+    xhr.onload = function () {
+      var data = null;
+      try { data = JSON.parse(xhr.responseText); } catch (err) { data = null; }
+      if (xhr.status === 200 && data && data.ok) {
+        show("✅ " + data.message, false);
+        setTimeout(function () { window.location.reload(); }, 900);
+      } else {
+        submit.disabled = false;
+        show("❌ " + (data && data.message ? data.message : "L'envoi a échoué (erreur " + xhr.status + ")."), true);
+      }
+    };
+    xhr.onerror = function () {
+      submit.disabled = false;
+      show("❌ Connexion perdue pendant l'envoi. Réessaie.", true);
+    };
+    xhr.send(new FormData(form));
+  });
+})();
+</script>
+{% endblock %}

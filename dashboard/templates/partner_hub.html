@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+<main class="container">
+  <h1>🤝 Mon espace partenaire</h1>
+  <p class="sub">Choisis le serveur dont tu veux voir les statistiques.</p>
+  {% if cards %}
+  <div class="grid servers">
+    {% for item in cards %}
+    <a class="card server" href="{{ url_for('partner_space', guild_id=item['guild'].id) }}">
+      {% if item['guild'].icon %}<img src="{{ item['guild'].icon.url }}" alt="">{% else %}<div class="avatar">{{ item['guild'].name[:1] }}</div>{% endif %}
+      <strong>{{ item['guild'].name }}</strong>
+      <span class="muted">{{ item['name'] }}</span>
+      <span class="btn primary small">Ouvrir</span>
+    </a>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="card"><p class="muted">Tu n'es partenaire d'aucun serveur pour le moment. Si tu penses l'être, demande à l'équipe de t'ajouter.</p></div>
+  {% endif %}
+</main>
+{% endblock %}

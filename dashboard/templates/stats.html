@@ -1,0 +1,28 @@
+{% extends "guild.html" %}
+{% block page %}
+<h1>📈 Statistiques</h1>
+<p class="sub">Les 30 derniers jours.</p>
+
+<div class="grid stats">
+  <div class="card stat"><span class="muted">Arrivées</span><strong>{{ charts[0]["total"] }}</strong></div>
+  <div class="card stat"><span class="muted">Départs</span><strong>{{ charts[1]["total"] }}</strong></div>
+  <div class="card stat"><span class="muted">Évolution</span><strong>{{ "+" if net > 0 }}{{ net }}</strong></div>
+  <div class="card stat"><span class="muted">Encaissé</span><strong class="small-num">{{ paid|euros }}</strong></div>
+  <div class="card stat"><span class="muted">À encaisser</span><strong class="small-num">{{ pending|euros }}</strong></div>
+</div>
+
+{% for chart in charts %}
+<div class="card">
+  <h2>{{ chart["title"] }} <span class="muted">· {{ chart["total"] }} sur 30 jours</span></h2>
+  <div class="bars">
+    {% for b in chart["bars"] %}
+    <div class="bar-col" title="{{ b['label'] }} : {{ b['value'] }}">
+      <div class="bar {{ chart['color'] }}" style="height: {{ b['height'] }}%"></div>
+    </div>
+    {% endfor %}
+  </div>
+  <div class="bar-axis"><span>{{ chart["bars"][0]["label"] }}</span><span>{{ chart["bars"][-1]["label"] }}</span></div>
+</div>
+{% endfor %}
+<p class="hint">« Encaissé » et « À encaisser » viennent des devis envoyés avec <code>/devis</code> et marqués payés avec <code>/paye</code>.</p>
+{% endblock %}

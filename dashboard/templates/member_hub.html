@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+<main class="container">
+  <h1>🎬 Mes ressources</h1>
+  <p class="sub">Les contenus réservés auxquels ton rôle Discord te donne accès.</p>
+  {% if cards %}
+  <div class="grid servers">
+    {% for item in cards %}
+    <a class="card server" href="{{ url_for('member_resources', guild_id=item['guild'].id) }}">
+      {% if item['guild'].icon %}<img src="{{ item['guild'].icon.url }}" alt="">{% else %}<div class="avatar">{{ item['guild'].name[:1] }}</div>{% endif %}
+      <strong>{{ item['guild'].name }}</strong>
+      <span class="muted">{{ item['count'] }} ressource(s)</span>
+      <span class="btn primary small">Ouvrir</span>
+    </a>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="card"><p class="muted">Aucune ressource disponible pour le moment. Si tu penses y avoir droit, vérifie que tu as bien le rôle demandé sur le serveur Discord.</p></div>
+  {% endif %}
+</main>
+{% endblock %}

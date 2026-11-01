@@ -1,0 +1,17 @@
+{% extends "guild.html" %}
+{% block page %}
+<h1>📜 Journal</h1>
+<p class="sub">Qui a modifié quoi depuis le dashboard (200 dernières actions).</p>
+<div class="card">
+  {% if entries %}
+  <div class="table-wrap">
+  <table>
+    <tr><th>Date</th><th>Qui</th><th>Action</th><th>Détail</th></tr>
+    {% for e in entries %}
+    <tr><td>{{ e["created_at"]|datefmt }}</td><td>{{ e["user_name"] or "?" }}</td><td>{{ e["action"] }}</td><td class="muted">{{ e["detail"] or "" }}</td></tr>
+    {% endfor %}
+  </table>
+  </div>
+  {% else %}<p class="muted">Aucune action enregistrée pour l'instant.</p>{% endif %}
+</div>
+{% endblock %}

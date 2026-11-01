@@ -1,0 +1,39 @@
+{% extends "guild.html" %}
+{% block page %}
+<h1>❓ FAQ</h1>
+<p class="sub">Les questions fréquentes affichées dans le menu du bouton « FAQ » du panneau de tickets et de la commande /faq (25 maximum).</p>
+
+<div class="card">
+  <h2>Questions actuelles</h2>
+  {% if items %}
+  <table>
+    {% for item in items %}
+    <tr>
+      <td><b>{{ item["question"] }}</b><br><span class="muted">{{ item["answer"] }}</span></td>
+      <td class="right">
+        <form method="post" action="{{ url_for('faq_delete', guild_id=guild.id) }}">
+          <input type="hidden" name="csrf" value="{{ csrf }}">
+          <input type="hidden" name="id" value="{{ item['id'] }}">
+          <button class="btn danger small" type="submit">Supprimer</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}<p class="muted">La FAQ est vide.</p>{% endif %}
+</div>
+
+<form method="post" action="{{ url_for('faq_add', guild_id=guild.id) }}" class="card">
+  <h2>Ajouter une question</h2>
+  <input type="hidden" name="csrf" value="{{ csrf }}">
+  <div class="field">
+    <div class="field-head"><label for="q">Question</label><span class="hint">100 caractères max</span></div>
+    <input id="q" type="text" name="question" maxlength="100" required>
+  </div>
+  <div class="field">
+    <div class="field-head"><label for="a">Réponse</label><span class="hint">1500 caractères max</span></div>
+    <textarea id="a" name="answer" rows="5" maxlength="1500" required></textarea>
+  </div>
+  <div class="actions"><button class="btn primary" type="submit">➕ Ajouter</button></div>
+</form>
+{% endblock %}

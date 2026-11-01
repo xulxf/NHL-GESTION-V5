@@ -1,0 +1,62 @@
+{% extends "guild.html" %}
+{% block page %}
+<h1>📊 Vue d'ensemble</h1>
+<p class="sub">Le résumé de {{ guild.name }}.</p>
+
+{% if setup_done < setup_total %}
+<div class="card setup">
+  <div class="field-head">
+    <strong>Configuration : {{ setup_done }}/{{ setup_total }} réglages essentiels</strong>
+    <span class="hint">À définir : {{ missing|join(", ") }}</span>
+  </div>
+  <div class="progress"><div style="width: {{ (setup_done * 100 // setup_total) }}%"></div></div>
+</div>
+{% endif %}
+
+<div class="grid stats">
+  <div class="card stat"><span class="muted">Membres</span><strong>{{ stats["members"] }}</strong></div>
+  <div class="card stat"><span class="muted">Tickets ouverts</span><strong>{{ stats["opened"] }}</strong></div>
+  <div class="card stat"><span class="muted">Tickets au total</span><strong>{{ stats["total"] }}</strong></div>
+  <div class="card stat"><span class="muted">Note moyenne</span>
+    <strong>{% if stats["reviews"] %}{{ "%.1f"|format(stats["rating"]) }}/5{% else %}—{% endif %}</strong>
+    <span class="muted">{{ stats["reviews"] }} avis</span></div>
+  <div class="card stat"><span class="muted">Giveaways en cours</span><strong>{{ stats["giveaways"] }}</strong></div>
+</div>
+
+<div class="grid two">
+  <div class="card">
+    <h2>📦 Commandes par statut</h2>
+    <div class="chips">
+      {% for label, count in status_counts %}<span class="chip">{{ label }} <b>{{ count }}</b></span>{% endfor %}
+    </div>
+  </div>
+  <div class="card">
+    <h2>🏆 Membres les plus actifs</h2>
+    {% if top %}
+    <table>
+      {% for t in top %}
+      <tr><td>{{ loop.index }}.</td><td>{{ t["name"] }}</td><td>Niveau {{ t["level"] }}</td><td class="muted">{{ t["xp"] }} XP</td></tr>
+      {% endfor %}
+    </table>
+    {% else %}<p class="muted">Pas encore de données.</p>{% endif %}
+  </div>
+</div>
+
+<div class="card">
+  <h2>🎫 Derniers tickets</h2>
+  {% if recent %}
+  <div class="table-wrap">
+  <table>
+    <tr><th>#</th><th>Catégorie</th><th>Client</th><th>Statut</th><th>Ouvert le</th><th>État</th></tr>
+    {% for t in recent %}
+    <tr>
+      <td>{{ "%04d"|format(t["number"]) }}</td><td>{{ t["category"] }}</td><td>{{ t["client"] }}</td>
+      <td>{{ t["status"] }}</td><td>{{ t["created_at"]|datefmt }}</td>
+      <td>{% if t["open"] %}<span class="badge open">Ouvert</span>{% else %}<span class="badge closed">Fermé</span>{% endif %}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  </div>
+  {% else %}<p class="muted">Aucun ticket pour l'instant.</p>{% endif %}
+</div>
+{% endblock %}

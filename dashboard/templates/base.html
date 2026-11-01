@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{{ brand }} — Dashboard{% endblock %}</title>
+  {% if logo %}<link rel="icon" href="{{ logo }}">{% endif %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="{{ url_for('index') }}">
+      {% if logo %}<img src="{{ logo }}" alt="">{% endif %}
+      <span>{{ brand }}</span>
+    </a>
+    <div class="spacer"></div>
+    {% if user %}
+    <div class="userbox">
+      <img src="{{ user['avatar'] }}" alt="">
+      {% if is_partner %}<a class="btn ghost small" href="{{ url_for('partner_hub') }}">🤝 Partenaire</a>{% endif %}
+      <a class="btn ghost small" href="{{ url_for('resources_hub') }}">🎬 Ressources</a>
+      <span>{{ user['name'] }}</span>
+      <a class="btn ghost small" href="{{ url_for('logout') }}">Déconnexion</a>
+    </div>
+    {% endif %}
+  </header>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+  <div class="flashes">
+    {% for category, message in messages %}
+    <div class="flash {{ category }}">{{ message }}</div>
+    {% endfor %}
+  </div>
+  {% endif %}
+  {% endwith %}
+
+  {% block content %}{% endblock %}
+</body>
+</html>

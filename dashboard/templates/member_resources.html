@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Ressources — {{ guild.name }}{% endblock %}
+{% block content %}
+<main class="container wide">
+  <div class="res-head">
+    {% if guild.icon %}<img src="{{ guild.icon.url }}" alt="">{% else %}<div class="avatar">{{ guild.name[:1] }}</div>{% endif %}
+    <div>
+      <h1>🎬 Ressources</h1>
+      <p class="sub">{{ guild.name }}</p>
+    </div>
+    {% if is_manager %}<a class="btn ghost small push" href="{{ url_for('resources_admin', guild_id=guild.id) }}">⚙️ Gérer</a>{% endif %}
+  </div>
+
+  {% if locked_role %}
+  <div class="card locked">
+    <h2>🔒 Accès réservé</h2>
+    <p class="muted">Ces ressources sont réservées aux membres ayant le rôle <b>{{ locked_role }}</b> sur le serveur Discord.</p>
+  </div>
+  {% elif not groups %}
+  <div class="card"><p class="muted">{% if empty %}Aucune ressource n'a été ajoutée pour l'instant.{% else %}Aucune ressource disponible pour toi pour le moment.{% endif %}</p></div>
+  {% else %}
+  {% for category, items in groups.items() %}
+  <h2 class="category-title">{{ category }}</h2>
+  <div class="res-grid">
+    {% for it in items %}
+    <article class="card res-card">
+      {% if it["media"]["kind"] == "embed" %}
+      <div class="video-wrap">
+        <iframe src="{{ it['media']['src'] }}" title="{{ it['title'] }}" loading="lazy" allowfullscreen
+                allow="accelerometer; encrypted-media; picture-in-picture; fullscreen"
+                referrerpolicy="strict-origin-when-cross-origin"></iframe>
+      </div>
+      {% elif it["media"]["kind"] == "video" %}
+      <video class="res-video" controls preload="metadata" {% if not it["media"]["hosted"] %}controlsList="nodownload"{% endif %} src="{{ it['media']['src'] }}"></video>
+      {% elif it["media"]["kind"] == "audio" %}
+      <audio class="res-audio" controls preload="metadata" src="{{ it['media']['src'] }}"></audio>
+      {% elif it["media"]["kind"] == "image" %}
+      <img class="res-img" src="{{ it['media']['src'] }}" alt="{{ it['title'] }}" loading="lazy" referrerpolicy="no-referrer">
+      {% endif %}
+      <h3>{{ it["title"] }}</h3>
+      {% if it["description"] %}<p class="muted">{{ it["description"] }}</p>{% endif %}
+      {% if it["media"]["kind"] == "link" %}
+      <a class="btn primary small" href="{{ it['media']['src'] }}" target="_blank" rel="noopener noreferrer">Ouvrir le lien ↗</a>
+      {% elif it["media"]["hosted"] %}
+      <a class="btn primary small" href="{{ it['media']['download'] }}">⬇️ Télécharger · {{ "%.1f"|format(it['media']['size'] / 1048576) }} Mo</a>
+      {% endif %}
+    </article>
+    {% endfor %}
+  </div>
+  {% endfor %}
+  {% endif %}
+</main>
+{% endblock %}

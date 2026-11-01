@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="layout">
+  <aside class="sidebar">
+    <div class="guild-head">
+      {% if guild.icon %}<img src="{{ guild.icon.url }}" alt="">{% else %}<div class="avatar">{{ guild.name[:1] }}</div>{% endif %}
+      <strong>{{ guild.name }}</strong>
+    </div>
+    <nav>
+      <a class="{{ 'active' if section == 'overview' }}" href="{{ url_for('overview', guild_id=guild.id) }}">📊 Vue d'ensemble</a>
+      {% for key, p in pages.items() %}
+      <a class="{{ 'active' if section == key }}" href="{{ url_for('settings', guild_id=guild.id, page=key) }}">{{ p["icon"] }} {{ p["title"] }}</a>
+      {% endfor %}
+      <a class="{{ 'active' if section == 'resources' }}" href="{{ url_for('resources_admin', guild_id=guild.id) }}">🎬 Ressources</a>
+      <a class="{{ 'active' if section == 'partners' }}" href="{{ url_for('partners_admin', guild_id=guild.id) }}">🤝 Partenaires</a>
+      <a class="{{ 'active' if section == 'faq' }}" href="{{ url_for('faq', guild_id=guild.id) }}">❓ FAQ</a>
+      <a class="{{ 'active' if section == 'stats' }}" href="{{ url_for('stats_page', guild_id=guild.id) }}">📈 Statistiques</a>
+      <a class="{{ 'active' if section == 'announce' }}" href="{{ url_for('announce', guild_id=guild.id) }}">📣 Annonce</a>
+      <a class="{{ 'active' if section == 'transcripts' }}" href="{{ url_for('transcripts', guild_id=guild.id) }}">🗂️ Transcriptions</a>
+      <a class="{{ 'active' if section == 'journal' }}" href="{{ url_for('journal', guild_id=guild.id) }}">📜 Journal</a>
+      <a class="{{ 'active' if section == 'activity' }}" href="{{ url_for('activity', guild_id=guild.id) }}">🧾 Activité</a>
+      <a class="back" href="{{ url_for('servers') }}">← Mes serveurs</a>
+    </nav>
+  </aside>
+  <section class="content">
+    {% block page %}{% endblock %}
+  </section>
+</div>
+{% endblock %}

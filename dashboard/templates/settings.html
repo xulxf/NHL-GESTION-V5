@@ -1,0 +1,73 @@
+{% extends "guild.html" %}
+{% block page %}
+<h1>{{ spec["icon"] }} {{ spec["title"] }}</h1>
+<p class="sub">{{ spec["desc"] }}</p>
+
+<form method="post" class="card">
+  <input type="hidden" name="csrf" value="{{ csrf }}">
+  {% for f in spec["fields"] %}
+  {% set value = values[f["key"]] %}
+  <div class="field">
+    <div class="field-head">
+      <label for="f-{{ f['key'] }}">{{ f["label"] }}</label>
+      {% if f.get("help") %}<span class="hint">{{ f["help"] }}</span>{% endif %}
+    </div>
+    {% if f["type"] == "toggle" %}
+      <label class="switch">
+        <input id="f-{{ f['key'] }}" type="checkbox" name="{{ f['key'] }}" {% if value == "1" %}checked{% endif %}>
+        <span class="slider"></span>
+      </label>
+    {% elif f["type"] in ("channel", "category", "role") %}
+      <select id="f-{{ f['key'] }}" name="{{ f['key'] }}">
+        <option value="">— Aucun —</option>
+        {% for oid, oname in options[f["type"]] %}
+        <option value="{{ oid }}" {% if value|string == oid|string %}selected{% endif %}>{{ oname }}</option>
+        {% endfor %}
+      </select>
+    {% elif f["type"] == "choice" %}
+      <select id="f-{{ f['key'] }}" name="{{ f['key'] }}">
+        {% for ov, ol in f["options"] %}
+        <option value="{{ ov }}" {% if value == ov %}selected{% endif %}>{{ ol }}</option>
+        {% endfor %}
+      </select>
+    {% elif f["type"] == "text" %}
+      <textarea id="f-{{ f['key'] }}" name="{{ f['key'] }}" rows="3" maxlength="{{ f.get('max', 500) }}">{{ value or "" }}</textarea>
+    {% endif %}
+  </div>
+  {% endfor %}
+  <div class="actions"><button class="btn primary" type="submit">💾 Enregistrer</button></div>
+</form>
+
+{% if page == "community" %}
+<div class="card">
+  <h2>🎁 Récompenses de niveaux</h2>
+  <p class="sub">Un rôle donné automatiquement quand un membre atteint un niveau.</p>
+  {% if rewards %}
+  <table>
+    {% for r in rewards %}
+    <tr>
+      <td>Niveau <b>{{ r["level"] }}</b></td><td>{{ r["role"] }}</td>
+      <td class="right">
+        <form method="post" action="{{ url_for('level_delete', guild_id=guild.id) }}">
+          <input type="hidden" name="csrf" value="{{ csrf }}">
+          <input type="hidden" name="level" value="{{ r['level'] }}">
+          <button class="btn danger small" type="submit">Retirer</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}<p class="muted">Aucune récompense pour l'instant.</p>{% endif %}
+
+  <form method="post" action="{{ url_for('level_add', guild_id=guild.id) }}" class="inline-form">
+    <input type="hidden" name="csrf" value="{{ csrf }}">
+    <input type="number" name="level" min="1" max="200" placeholder="Niveau" required>
+    <select name="role" required>
+      <option value="">Choisis un rôle…</option>
+      {% for oid, oname in options["role"] %}<option value="{{ oid }}">{{ oname }}</option>{% endfor %}
+    </select>
+    <button class="btn primary" type="submit">Ajouter</button>
+  </form>
+</div>
+{% endif %}
+{% endblock %}

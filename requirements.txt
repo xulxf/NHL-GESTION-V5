@@ -1,0 +1,6 @@
+discord.py>=2.4
+python-dotenv>=1.0
+flask>=3.0
+waitress>=3.0
+pg8000
+scramp==1.4.9

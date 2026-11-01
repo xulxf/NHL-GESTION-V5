@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% block title %}Espace partenaire — {{ guild.name }}{% endblock %}
+{% block content %}
+<main class="container wide">
+  {% if admin_view %}
+  <div class="card admin-note">
+    👁️ Vue administrateur : espace de <b>{{ partner["name"] }}</b>
+    <a class="btn ghost small push" href="{{ url_for('partners_admin', guild_id=guild.id) }}">← Retour aux partenaires</a>
+  </div>
+  {% endif %}
+
+  <div class="res-head">
+    {% if guild.icon %}<img src="{{ guild.icon.url }}" alt="">{% else %}<div class="avatar">{{ guild.name[:1] }}</div>{% endif %}
+    <div>
+      <h1>🤝 {{ partner["name"] }}</h1>
+      <p class="sub">Espace partenaire · {{ guild.name }}</p>
+    </div>
+    <span class="tier-badge push">{% if current %}🏅 {{ current["name"] }}{% else %}Aucun palier pour l'instant{% endif %}</span>
+  </div>
+
+  <div class="card invite-box">
+    <div>
+      <span class="muted">Ton lien d'invitation personnel</span>
+      <div class="invite-link">{{ invite_url }}</div>
+      <span class="hint">Chaque personne qui rejoint le serveur avec ce lien est comptée pour toi.</span>
+    </div>
+    <button class="btn primary" type="button" data-link="{{ invite_url }}" onclick="copyLink(this)">📋 Copier</button>
+  </div>
+
+  {% if current and not admin_view %}
+  <form method="post" action="{{ url_for('partner_claim', guild_id=guild.id) }}" class="card claim-box">
+    <input type="hidden" name="csrf" value="{{ csrf }}">
+    <div><strong>🎁 Ta récompense</strong><br><span class="muted">Palier « {{ current["name"] }} » atteint : ouvre un ticket pour la recevoir.</span></div>
+    <button class="btn primary" type="submit">🎁 Réclamer ma récompense</button>
+  </form>
+  {% endif %}
+
+  <div class="grid stats">
+    <div class="card stat"><span class="muted">Membres actifs</span><strong>{{ active }}</strong></div>
+    <div class="card stat"><span class="muted">Arrivés grâce à toi</span><strong>{{ total }}</strong></div>
+    <div class="card stat"><span class="muted">Ont quitté</span><strong>{{ left }}</strong></div>
+    <div class="card stat"><span class="muted">Palier actuel</span><strong class="small-num">{{ current["name"] if current else "—" }}</strong></div>
+  </div>
+
+  <div class="card">
+    {% if upcoming %}
+    <div class="field-head">
+      <strong>Prochain palier : {{ upcoming["name"] }}</strong>
+      <span class="hint">Encore {{ upcoming["remaining"] }} membre(s) pour l'atteindre ({{ active }}/{{ upcoming["min"] }}).</span>
+    </div>
+    <div class="progress"><div style="width: {{ percent }}%"></div></div>
+    {% elif tiers %}
+    <strong>🏆 Tu as atteint le palier maximum !</strong>
+    <div class="progress"><div style="width: 100%"></div></div>
+    {% else %}
+    <p class="muted">Les paliers n'ont pas encore été définis par l'équipe.</p>
+    {% endif %}
+  </div>
+
+  {% if tiers %}
+  <h2 class="category-title">🏅 Les paliers</h2>
+  <div class="tier-grid">
+    {% for t in tiers %}
+    <div class="card tier-card {{ t['state'] }} {{ 'current' if t['current'] }}">
+      <div class="tier-top"><strong>{{ t["name"] }}</strong>
+        <span class="tier-state">{% if t["state"] == "done" %}✅ Atteint{% elif t["state"] == "next" %}🎯 Prochain{% else %}🔒 À débloquer{% endif %}</span></div>
+      <span class="muted">{{ t["min"] }} membres</span>
+      {% if t["reward"] %}<p>🎁 {{ t["reward"] }}</p>{% endif %}
+      {% if t["role"] %}<p class="hint">Rôle Discord : {{ t["role"] }}</p>{% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <div class="grid two" style="margin-top: 22px">
+    <div class="card">
+      <h2>👥 Derniers arrivés avec ton lien</h2>
+      {% if referrals %}
+      <div class="table-wrap">
+      <table>
+        <tr><th>Membre</th><th>Arrivé le</th><th>État</th></tr>
+        {% for r in referrals %}
+        <tr><td>{{ r["name"] }}</td><td>{{ r["joined_at"]|datefmt }}</td>
+          <td>{% if r["left"] %}<span class="badge closed">A quitté</span>{% else %}<span class="badge open">Présent</span>{% endif %}</td></tr>
+        {% endfor %}
+      </table>
+      </div>
+      {% else %}<p class="muted">Personne n'a encore rejoint avec ton lien. Partage-le !</p>{% endif %}
+    </div>
+    <div class="card">
+      <h2>🏆 Classement des partenaires</h2>
+      {% if board %}
+      {% for b in board %}
+      <div class="lb-row {{ 'me' if b['me'] }}"><span>{{ loop.index }}. {{ b["name"] }}{% if b["me"] %} (toi){% endif %}</span><b>{{ b["count"] }}</b></div>
+      {% endfor %}
+      {% else %}<p class="muted">Pas encore de classement.</p>{% endif %}
+    </div>
+  </div>
+</main>
+<script>
+function copyLink(button) {
+  navigator.clipboard.writeText(button.dataset.link).then(function () {
+    var old = button.textContent; button.textContent = "✅ Copié !";
+    setTimeout(function () { button.textContent = old; }, 1800);
+  });
+}
+</script>
+{% endblock %}

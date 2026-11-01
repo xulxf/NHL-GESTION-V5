@@ -1,0 +1,7 @@
+{% extends "guild.html" %}
+{% block page %}
+<h1>🗂️ Ticket #{{ "%04d"|format(t["ticket_number"]) }}</h1>
+<p class="sub">{{ t["channel_name"] }} · fermé par {{ t["closed_by"] or "—" }} · {{ t["created_at"]|datefmt }}</p>
+<a class="btn ghost small" href="{{ url_for('transcripts', guild_id=guild.id) }}">← Retour</a>
+<div class="card" style="margin-top: 16px"><pre class="transcript">{{ t["content"] }}</pre></div>
+{% endblock %}

@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block content %}
+<main class="container">
+  <h1>Choisis un serveur</h1>
+  <p class="sub">Seuls les serveurs où le bot est présent et où tu as la permission « Gérer le serveur » apparaissent ici.</p>
+  <div class="grid servers">
+    {% for g in guilds %}
+    <a class="card server" href="{{ url_for('overview', guild_id=g.id) }}">
+      {% if g.icon %}<img src="{{ g.icon.url }}" alt="">{% else %}<div class="avatar">{{ g.name[:1] }}</div>{% endif %}
+      <strong>{{ g.name }}</strong>
+      <span class="muted">{{ g.member_count }} membres</span>
+      <span class="btn primary small">Configurer</span>
+    </a>
+    {% endfor %}
+    <a class="card server add" href="{{ invite }}" target="_blank" rel="noopener">
+      <div class="avatar plus">+</div>
+      <strong>Ajouter le bot</strong>
+      <span class="muted">sur un autre serveur</span>
+    </a>
+  </div>
+  {% if not guilds %}
+  <p class="sub">Aucun serveur à administrer pour ce compte (il faut la permission « Gérer le serveur »).</p>
+  {% endif %}
+
+  {% if partner_guilds %}
+  <h2 class="category-title">🤝 Mon espace partenaire</h2>
+  <div class="grid servers">
+    {% for item in partner_guilds %}
+    <a class="card server" href="{{ url_for('partner_space', guild_id=item['guild'].id) }}">
+      {% if item['guild'].icon %}<img src="{{ item['guild'].icon.url }}" alt="">{% else %}<div class="avatar">{{ item['guild'].name[:1] }}</div>{% endif %}
+      <strong>{{ item['guild'].name }}</strong>
+      <span class="muted">{{ item['name'] }}</span>
+      <span class="btn primary small">Ouvrir</span>
+    </a>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if resource_guilds %}
+  <h2 class="category-title">🎬 Mes ressources</h2>
+  <div class="grid servers">
+    {% for item in resource_guilds %}
+    <a class="card server" href="{{ url_for('member_resources', guild_id=item['guild'].id) }}">
+      {% if item['guild'].icon %}<img src="{{ item['guild'].icon.url }}" alt="">{% else %}<div class="avatar">{{ item['guild'].name[:1] }}</div>{% endif %}
+      <strong>{{ item['guild'].name }}</strong>
+      <span class="muted">{{ item['count'] }} ressource(s)</span>
+      <span class="btn primary small">Ouvrir</span>
+    </a>
+    {% endfor %}
+  </div>
+  {% endif %}
+</main>
+{% endblock %}

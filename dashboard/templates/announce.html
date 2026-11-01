@@ -1,0 +1,31 @@
+{% extends "guild.html" %}
+{% block page %}
+<h1>📣 Annonce</h1>
+<p class="sub">Envoie un message mis en forme dans un salon, depuis le site.</p>
+<form method="post" class="card">
+  <input type="hidden" name="csrf" value="{{ csrf }}">
+  <div class="field">
+    <div class="field-head"><label for="a-chan">Salon</label></div>
+    <select id="a-chan" name="channel" required>
+      <option value="">— Choisir un salon —</option>
+      {% for oid, oname in options["channel"] %}<option value="{{ oid }}">{{ oname }}</option>{% endfor %}
+    </select>
+  </div>
+  <div class="field">
+    <div class="field-head"><label for="a-title">Titre</label><span class="hint">Facultatif</span></div>
+    <input id="a-title" type="text" name="title" maxlength="256">
+  </div>
+  <div class="field">
+    <div class="field-head"><label for="a-text">Message</label><span class="hint">4000 caractères max. La mise en forme Discord (**gras**, listes…) fonctionne.</span></div>
+    <textarea id="a-text" name="text" rows="8" maxlength="4000" required></textarea>
+  </div>
+  <div class="field">
+    <div class="field-head"><label for="a-color">Couleur de la barre</label></div>
+    <select id="a-color" name="color">
+      <option value="info">Bleu</option><option value="success">Vert</option><option value="warn">Jaune</option>
+      <option value="error">Rouge</option><option value="mod">Rose</option>
+    </select>
+  </div>
+  <div class="actions"><button class="btn primary" type="submit">📣 Envoyer l'annonce</button></div>
+</form>
+{% endblock %}

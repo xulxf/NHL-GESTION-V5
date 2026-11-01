@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+  .topbar { display: none; }
+  .hero.solo { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 24px; }
+  .hero.solo .hero-logo { margin-bottom: 10px; }
+  .hero.solo h1 { margin: 4px 0 30px; }
+</style>
+<main class="hero solo">
+  {% if logo %}<img class="hero-logo" src="{{ logo }}" alt="">{% endif %}
+  <h1>{{ brand }}</h1>
+  {% if configured %}
+    <a class="btn discord big" href="{{ url_for('login') }}">Se connecter avec Discord</a>
+  {% else %}
+    <div class="notice">Le dashboard n'est pas encore configuré : la variable <code>DISCORD_CLIENT_SECRET</code> est manquante.</div>
+  {% endif %}
+</main>
+{% endblock %}

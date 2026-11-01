@@ -1,0 +1,35 @@
+{% extends "guild.html" %}
+{% block page %}
+<h1>🧾 Activité</h1>
+<p class="sub">Les derniers tickets et avis clients.</p>
+
+<div class="card">
+  <h2>🎫 Tickets (50 derniers)</h2>
+  {% if tickets %}
+  <div class="table-wrap">
+  <table>
+    <tr><th>#</th><th>Catégorie</th><th>Client</th><th>Statut</th><th>Responsable</th><th>Ouvert le</th><th>État</th></tr>
+    {% for t in tickets %}
+    <tr>
+      <td>{{ "%04d"|format(t["number"]) }}</td><td>{{ t["category"] }}</td><td>{{ t["client"] }}</td>
+      <td>{{ t["status"] }}</td><td>{{ t["claimed_by"] or "—" }}</td><td>{{ t["created_at"]|datefmt }}</td>
+      <td>{% if t["open"] %}<span class="badge open">Ouvert</span>{% else %}<span class="badge closed">Fermé</span>{% endif %}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  </div>
+  {% else %}<p class="muted">Aucun ticket pour l'instant.</p>{% endif %}
+</div>
+
+<div class="card">
+  <h2>⭐ Derniers avis</h2>
+  {% if reviews %}
+  {% for r in reviews %}
+  <div class="review">
+    <div><b>{{ r["client"] }}</b> — {{ r["rating"]|stars }} <span class="muted">· ticket #{{ "%04d"|format(r["number"]) }} · {{ r["created_at"]|datefmt }}</span></div>
+    {% if r["comment"] %}<p>{{ r["comment"] }}</p>{% endif %}
+  </div>
+  {% endfor %}
+  {% else %}<p class="muted">Aucun avis pour l'instant.</p>{% endif %}
+</div>
+{% endblock %}

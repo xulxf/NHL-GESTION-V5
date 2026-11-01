@@ -1,0 +1,21 @@
+{% extends "guild.html" %}
+{% block page %}
+<h1>🗂️ Transcriptions</h1>
+<p class="sub">La conversation complète de chaque ticket fermé (100 derniers).</p>
+<div class="card">
+  {% if items %}
+  <div class="table-wrap">
+  <table>
+    <tr><th>Ticket</th><th>Client</th><th>Fermé par</th><th>Date</th><th></th></tr>
+    {% for t in items %}
+    <tr>
+      <td>#{{ "%04d"|format(t["ticket_number"]) }} · {{ t["channel_name"] }}</td><td>{{ t["client"] }}</td>
+      <td>{{ t["closed_by"] or "—" }}</td><td>{{ t["created_at"]|datefmt }}</td>
+      <td class="right"><a class="btn ghost small" href="{{ url_for('transcript_view', guild_id=guild.id, transcript_id=t['id']) }}">Lire</a></td>
+    </tr>
+    {% endfor %}
+  </table>
+  </div>
+  {% else %}<p class="muted">Aucune transcription : elles apparaissent à la fermeture des prochains tickets.</p>{% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,114 @@
+{% extends "guild.html" %}
+{% block page %}
+<h1>🤝 Partenaires</h1>
+<p class="sub">Donne un lien d'invitation personnel à chaque partenaire, suis ceux qu'il ramène et récompense-le avec des paliers.</p>
+
+{% if not can_track %}
+<div class="card setup">
+  <strong>⚠️ Il manque une permission au bot</strong>
+  <p class="hint">Pour créer des liens et suivre les arrivées, le bot doit avoir la permission « Gérer le serveur » (et « Créer une invitation »). Donne-la-lui dans les rôles du serveur Discord.</p>
+</div>
+{% endif %}
+
+<div class="card">
+  <h2>🏅 Paliers</h2>
+  <p class="sub">Plus un partenaire fait venir de membres (encore présents), plus il monte en palier. Un rôle Discord peut être donné automatiquement.</p>
+  {% if tiers %}
+  <table>
+    <tr><th>Palier</th><th>Membres requis</th><th>Récompense</th><th>Rôle donné</th><th></th></tr>
+    {% for t in tiers %}
+    <tr>
+      <td><b>{{ t["name"] }}</b></td><td>{{ t["min"] }}</td><td>{{ t["reward"] or "—" }}</td><td>{{ t["role"] or "—" }}</td>
+      <td class="right">
+        <form method="post" action="{{ url_for('partner_tier_delete', guild_id=guild.id) }}">
+          <input type="hidden" name="csrf" value="{{ csrf }}"><input type="hidden" name="id" value="{{ t['id'] }}">
+          <button class="btn danger small" type="submit">Supprimer</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}<p class="muted">Aucun palier pour l'instant.</p>{% endif %}
+
+  <form method="post" action="{{ url_for('partner_tier_add', guild_id=guild.id) }}" class="stack-form">
+    <input type="hidden" name="csrf" value="{{ csrf }}">
+    <input type="text" name="name" maxlength="40" placeholder="Nom (ex. Bronze)" required>
+    <input type="number" name="min_members" min="1" max="100000" placeholder="Membres requis" required>
+    <input type="text" name="reward" maxlength="300" placeholder="Récompense (facultatif)">
+    <select name="role">
+      <option value="">— Aucun rôle Discord —</option>
+      {% for oid, oname in options["role"] %}<option value="{{ oid }}">{{ oname }}</option>{% endfor %}
+    </select>
+    <button class="btn primary" type="submit">➕ Ajouter le palier</button>
+  </form>
+</div>
+
+<form method="post" action="{{ url_for('partner_settings', guild_id=guild.id) }}" class="card">
+  <h2>⚙️ Réglages</h2>
+  <input type="hidden" name="csrf" value="{{ csrf }}">
+  <div class="stack-form">
+    <label>Âge minimum du compte (jours)
+      <input type="number" name="min_age" min="0" max="365" value="{{ min_age }}" style="width: 110px">
+    </label>
+    <label>Classement hebdomadaire dans
+      <select name="board_channel">
+        <option value="">— Aucun —</option>
+        {% for oid, oname in options["channel"] %}<option value="{{ oid }}" {% if board_channel|string == oid|string %}selected{% endif %}>{{ oname }}</option>{% endfor %}
+      </select>
+    </label>
+    <button class="btn primary" type="submit">💾 Enregistrer</button>
+  </div>
+  <p class="hint">Un compte plus récent que l'âge minimum n'est pas compté pour le partenaire (protège contre les faux comptes). 0 = pas de limite.</p>
+</form>
+
+<div class="card">
+  <h2>🤝 Partenaires ({{ partners|length }})</h2>
+  {% if partners %}
+  <div class="table-wrap">
+  <table>
+    <tr><th>Partenaire</th><th>Compte Discord</th><th>Lien</th><th>Actifs</th><th>Total</th><th>Palier</th><th></th></tr>
+    {% for p in partners %}
+    <tr>
+      <td><a href="{{ url_for('partner_admin_view', guild_id=guild.id, partner_id=p['id']) }}"><b>{{ p["name"] }}</b></a></td>
+      <td>{{ p["user"] }}</td>
+      <td><code>{{ p["invite_url"] }}</code></td>
+      <td>{{ p["active"] }}</td><td>{{ p["total"] }}</td><td>{{ p["tier"] or "—" }}</td>
+      <td class="right">
+        <form method="post" action="{{ url_for('partner_delete', guild_id=guild.id) }}" onsubmit="return confirm('Retirer ce partenaire ? Son lien sera supprimé.');">
+          <input type="hidden" name="csrf" value="{{ csrf }}"><input type="hidden" name="id" value="{{ p['id'] }}">
+          <button class="btn danger small" type="submit">Retirer</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  </div>
+  {% else %}<p class="muted">Aucun partenaire pour l'instant.</p>{% endif %}
+</div>
+
+<form method="post" action="{{ url_for('partner_add', guild_id=guild.id) }}" class="card">
+  <h2>➕ Ajouter un partenaire</h2>
+  <input type="hidden" name="csrf" value="{{ csrf }}">
+  <div class="field">
+    <div class="field-head"><label for="p-user">Membre du serveur</label><span class="hint">La personne doit déjà être sur ton serveur Discord : elle se connectera au site avec ce compte.</span></div>
+    <select id="p-user" name="user">
+      <option value="">— Choisir un membre —</option>
+      {% for mid, mname in members %}<option value="{{ mid }}">{{ mname }}</option>{% endfor %}
+    </select>
+    <input type="text" name="user_id" placeholder="ou colle son ID Discord" style="margin-top: 8px">
+  </div>
+  <div class="field">
+    <div class="field-head"><label for="p-name">Nom affiché</label><span class="hint">Facultatif : son pseudo par défaut.</span></div>
+    <input id="p-name" type="text" name="name" maxlength="40">
+  </div>
+  <div class="field">
+    <div class="field-head"><label for="p-chan">Salon de l'invitation</label><span class="hint">Les nouveaux arrivants atterriront dans ce salon (ex. ton salon de bienvenue).</span></div>
+    <select id="p-chan" name="channel" required>
+      <option value="">— Choisir un salon —</option>
+      {% for oid, oname in options["channel"] %}<option value="{{ oid }}" {% if default_channel|string == oid|string %}selected{% endif %}>{{ oname }}</option>{% endfor %}
+    </select>
+  </div>
+  <div class="actions"><button class="btn primary" type="submit">➕ Créer son lien</button></div>
+  <p class="hint share">Donne ce lien à tes partenaires pour qu'ils suivent leurs stats : <code>{{ share_url }}</code></p>
+</form>
+{% endblock %}
