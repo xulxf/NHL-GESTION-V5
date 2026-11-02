@@ -131,7 +131,7 @@ class TicketTools(commands.Cog):
     @app_commands.command(name="devis", description="Envoyer un devis au client (dans un ticket)")
     @app_commands.guild_only()
     @app_commands.describe(montant="Prix en euros", details="Précisions affichées sur le devis (facultatif)")
-    async def devis(self, interaction: discord.Interaction, montant: app_commands.Range[float, 0.01, 100000], details: Optional[str] = None):
+    async def devis(self, interaction: discord.Interaction, montant: app_commands.Range[float, 0.01, 100000.0], details: Optional[str] = None):
         row = await self.staff_ticket(interaction)
         if row is None:
             return
