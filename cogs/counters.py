@@ -18,7 +18,7 @@ CHANNEL_MINUTES = 6     # mise à jour du nom du salon compteur
 
 
 def counter_name(count: int) -> str:
-    return f"👥 Membres : {count}"
+    return f" Membres : {count}"
 
 
 class Counters(commands.Cog):
