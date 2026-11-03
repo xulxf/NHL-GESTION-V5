@@ -96,7 +96,7 @@ class Counters(commands.Cog):
     async def membres(self, interaction: discord.Interaction):
         guild = interaction.guild
         bots = sum(1 for m in guild.members if m.bot)
-        embed = embeds.make("👥 Membres", None, "info")
+        embed = embeds.make(" Membres", None, "info")
         embed.add_field(name="Total", value=f"**{guild.member_count}**")
         embed.add_field(name="Humains", value=f"**{guild.member_count - bots}**")
         embed.add_field(name="Bots", value=f"**{bots}**")
